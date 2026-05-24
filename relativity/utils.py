@@ -42,7 +42,7 @@ def smart_array(data):
 
     dtype = object if is_symbolic(data) else float
 
-    return smart_array(data, dtype=dtype)
+    return np.array(data, dtype=dtype)
 
 
 # ============================================================
@@ -54,7 +54,7 @@ def smart_sqrt(x):
     if is_symbolic(x):
         return sp.sqrt(x)
 
-    return smart_sqrt(x)
+    return np.sqrt(x)
 
 
 def smart_exp(x):

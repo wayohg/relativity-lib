@@ -20,12 +20,12 @@ class Worldline:
     @property
     def times(self):
 
-        return smart_array([e.t for e in self.events])
+        return np.array([e.t for e in self.events])
 
     @property
     def positions(self):
 
-        return smart_array([e.r for e in self.events])
+        return np.array([e.r for e in self.events])
 
     def spacetime_interval(self, e1, e2):
 
@@ -55,7 +55,7 @@ class Worldline:
 
             if interval > 0:
 
-                tau += smart_sqrt(interval) / self.c
+                tau += np.sqrt(interval) / self.c
 
         return tau
 
@@ -90,7 +90,7 @@ class Worldline:
 
             beta = speed / self.c
 
-            gamma = 1 / smart_sqrt(1 - beta**2)
+            gamma = 1 / np.sqrt(1 - beta**2)
 
             gammas.append(gamma)
 

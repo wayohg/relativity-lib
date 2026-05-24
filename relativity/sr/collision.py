@@ -51,7 +51,7 @@ class Collision:
         if m2 < 0:
             return 0
 
-        return smart_sqrt(m2)
+        return np.sqrt(m2)
 
     def center_of_mass_velocity(self):
 

@@ -1,14 +1,26 @@
-import numpy as np
+import sympy as sp
 
 from relativity.constants import (
     C,
     PLANCK
 )
 
+from relativity.utils import (
+    smart_array,
+    smart_norm,
+    smart_sqrt,
+    smart_dot,
+    smart_equal,
+    is_symbolic,
+    simplify
+)
+
 
 class Photon:
+
     """
-    Relativistic photon.
+    Relativistic photon with
+    symbolic/numeric support.
     """
 
     def __init__(
@@ -23,9 +35,11 @@ class Photon:
 
         self.name = name
 
-        self.frequency = float(frequency)
+        self.frequency = frequency
 
-        self.direction = smart_array(direction, dtype=float)
+        self.direction = smart_array(
+            direction
+        )
 
         self.frame = frame
 
@@ -35,80 +49,174 @@ class Photon:
 
         self.direction = (
             self.direction /
-            np.linalg.norm(self.direction)
+            smart_norm(self.direction)
         )
+
+    # =====================================================
+    # BASIC QUANTITIES
+    # =====================================================
 
     @property
     def wavelength(self):
 
-        return self.c / self.frequency
+        return (
+            self.c /
+            self.frequency
+        )
 
     @property
     def energy(self):
 
-        return self.h * self.frequency
+        return (
+            self.h *
+            self.frequency
+        )
 
     @property
     def momentum_magnitude(self):
 
-        return self.energy / self.c
+        return (
+            self.energy /
+            self.c
+        )
 
     @property
     def momentum(self):
 
         return (
+
             self.momentum_magnitude *
             self.direction
+
         )
 
     @property
     def velocity(self):
 
-        return self.c * self.direction
+        return (
+            self.c *
+            self.direction
+        )
+
+    # =====================================================
+    # FOUR MOMENTUM
+    # =====================================================
 
     @property
     def four_momentum(self):
 
-        E_over_c = self.energy / self.c
+        E_over_c = (
+            self.energy /
+            self.c
+        )
 
-        return np.array([
+        return smart_array([
+
             E_over_c,
             *self.momentum
+
         ])
+
+    # =====================================================
+    # NULL INTERVAL CHECK
+    # =====================================================
+
+    @property
+    def invariant_mass(self):
+
+        return 0
+
+    # =====================================================
+    # DOPPLER SHIFT
+    # =====================================================
 
     def doppler_shift(self, beta):
 
-        """
-        Relativistic Doppler shift.
+        factor = smart_sqrt(
 
-        Positive beta:
-        observer moving away.
+            (1 - beta)
 
-        Negative beta:
-        observer moving toward.
-        """
+            /
 
-        factor = np.sqrt(
-            (1 - beta) /
             (1 + beta)
+
         )
 
-        return self.frequency * factor
+        return (
+            self.frequency *
+            factor
+        )
+
+    # =====================================================
+    # CHECK LIGHTLIKE
+    # =====================================================
+
+    def is_lightlike(self):
+
+        P = self.four_momentum
+
+        E = P[0] * self.c
+
+        p = P[1:]
+
+        invariant = (
+
+            E**2 / self.c**2
+
+            -
+
+            smart_dot(p, p)
+
+        )
+
+        return smart_equal(
+            invariant,
+            0
+        )
+
+    # =====================================================
+    # INFO
+    # =====================================================
 
     def info(self):
 
         return {
+
             "name": self.name,
-            "frequency": self.frequency,
-            "wavelength": self.wavelength,
-            "energy": self.energy,
-            "momentum": self.momentum,
-            "four_momentum": self.four_momentum
+
+            "frequency":
+                self.frequency,
+
+            "wavelength":
+                self.wavelength,
+
+            "energy":
+                self.energy,
+
+            "momentum":
+                self.momentum,
+
+            "four_momentum":
+                self.four_momentum
+
         }
+
+    # =====================================================
+    # REPRESENTATION
+    # =====================================================
 
     def __repr__(self):
 
+        mode = (
+            "symbolic"
+            if is_symbolic(self.frequency)
+            else "numeric"
+        )
+
         return (
-            f"Photon(name={self.name}, "
-            f"frequency={self.frequency:.3e} Hz)"
+
+            f"Photon("
+            f"name={self.name}, "
+            f"mode={mode})"
+
         )
