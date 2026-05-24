@@ -35,12 +35,10 @@ def is_symbolic(x):
 # ARRAY CREATION
 # ============================================================
 
-def smart_array(data):
-    """
-    Create symbolic or numeric array automatically.
-    """
+def smart_array(data, dtype=None):
 
-    dtype = object if is_symbolic(data) else float
+    if dtype is None:
+        dtype = object if is_symbolic(data) else float
 
     return np.array(data, dtype=dtype)
 
@@ -53,8 +51,8 @@ def smart_sqrt(x):
 
     if is_symbolic(x):
         return sp.sqrt(x)
-
-    return np.sqrt(x)
+    
+    return np.sqrt(x) 
 
 
 def smart_exp(x):
