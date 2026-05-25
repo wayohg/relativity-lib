@@ -178,6 +178,15 @@ def rapidity_from_velocity(v, c):
 def velocity_from_rapidity(u, c):
     return simplify(c * smart_tanh(u))
 
+def normalize_vector(v, name="vector"):
+    v = smart_array(v)
+    n = smart_norm(v)
+
+    if not is_symbolic(n) and n == 0:
+        raise ValueError(f"{name} cannot be the zero vector.")
+
+    return simplify(v / n)
+
 
 # ============================================================
 # SYMBOLIC UTILITIES

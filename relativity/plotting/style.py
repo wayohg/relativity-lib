@@ -132,3 +132,23 @@ def finalize_plot(
     if return_fig_ax:
         return fig, ax
     return ax
+
+def add_grid(ax, which="both", alpha=0.35):
+    ax.grid(True, which=which, alpha=alpha)
+    return ax
+
+
+def format_axis(
+    ax,
+    xlabel=None,
+    ylabel=None,
+    title=None,
+    legend=True,
+):
+    return apply_axes_style(
+        ax,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        title=title,
+        legend=legend,
+    )

@@ -11,7 +11,8 @@ from relativity.utils import (
     gamma_factor,
     beta_factor,
     is_symbolic,
-    simplify
+    simplify,
+    normalize_vector
 )
 
 
@@ -32,6 +33,9 @@ class Particle:
         c=C
     ):
 
+        if not is_symbolic(mass) and mass <= 0:
+            raise ValueError("Particle mass must be positive. Use Photon for massless particles.")
+    
         self.name = name
 
         self.mass = mass
@@ -71,8 +75,7 @@ class Particle:
 
     @classmethod
     def from_energy(cls, mass, energy, direction, position=None, frame=None, name="particle", c=C):
-        direction = smart_array(direction)
-        direction = direction / smart_norm(direction)
+        direction = normalize_vector(direction, name="particle direction")
         p_mag = smart_sqrt(energy**2 / c**2 - mass**2 * c**2)
         momentum = p_mag * direction
         return cls.from_momentum(mass, momentum, position=position, frame=frame, name=name, c=c)

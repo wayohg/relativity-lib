@@ -14,6 +14,7 @@ from relativity.utils import (
     is_symbolic,
     simplify
 )
+from relativity.utils import normalize_vector
 
 
 class Photon:
@@ -37,21 +38,13 @@ class Photon:
 
         self.frequency = frequency
 
-        self.direction = smart_array(
-            direction
-        )
+        self.direction = normalize_vector(direction, name="photon direction")
 
         self.frame = frame
 
         self.c = c
 
         self.h = h
-
-        self.direction = (
-            self.direction /
-            smart_norm(self.direction)
-        )
-
 
     # =====================================================
     # ALTERNATIVE CONSTRUCTORS

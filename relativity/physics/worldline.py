@@ -10,8 +10,11 @@ from relativity.utils import smart_array, smart_dot, smart_sqrt, gamma_factor, i
 
 class Worldline:
     def __init__(self, events=None, c=C):
-        self.events = events if events is not None else []
+        self.events = []
         self.c = c
+
+        for event in events or []:
+            self.add_event(event)
 
     def add_event(self, event):
         self.events.append(event)
@@ -33,13 +36,56 @@ class Worldline:
         return simplify(self.c**2 * dt**2 - smart_dot(dr, dr))
 
     def proper_time(self):
-        if len(self.events) < 2:
-            return 0
+        """
+        Compute the accumulated proper time along the worldline.
+    
+        Uses the convention:
+    
+            ds^2 = c^2 dt^2 - dx^2 - dy^2 - dz^2
+    
+        Therefore:
+    
+            dτ = sqrt(ds^2) / c
+    
+        Raises
+        ------
+        ValueError
+            If any numeric segment is spacelike.
+        """
+        from relativity.utils import (
+            smart_array,
+            smart_dot,
+            smart_sqrt,
+            is_symbolic,
+            simplify,
+        )
+    
         tau = 0
+    
         for i in range(len(self.events) - 1):
-            interval = self.spacetime_interval(self.events[i], self.events[i + 1])
-            if is_symbolic(interval) or interval > 0:
+            e1 = self.events[i]
+            e2 = self.events[i + 1]
+    
+            dt = e2.t - e1.t
+    
+            r1 = smart_array([e1.x, e1.y, e1.z])
+            r2 = smart_array([e2.x, e2.y, e2.z])
+    
+            dr = r2 - r1
+    
+            interval = self.c**2 * dt**2 - smart_dot(dr, dr)
+    
+            if is_symbolic(interval):
                 tau += smart_sqrt(interval) / self.c
+            elif interval > 0:
+                tau += smart_sqrt(interval) / self.c
+            elif interval == 0:
+                continue
+            else:
+                raise ValueError(
+                    f"Segment {i}->{i + 1} is spacelike; proper time is not real."
+                )
+    
         return simplify(tau)
 
     def velocities(self):

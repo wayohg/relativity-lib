@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: relativity
+Version: 0.1.0
+Summary: Special relativity physics library
+Requires-Python: >=3.9
+Requires-Dist: numpy
+Requires-Dist: sympy
+Requires-Dist: matplotlib

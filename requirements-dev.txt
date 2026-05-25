@@ -1,0 +1,4 @@
+pytest
+numpy
+sympy
+matplotlib

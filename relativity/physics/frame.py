@@ -30,13 +30,25 @@ class ReferenceFrame:
         return relativistic_velocity_addition(self.v, -parent_v, self.c)
 
     def velocity_wrt(self, other_frame):
+        """
+        Physical velocity of this frame as measured in other_frame.
+        """
+        v_self = self._velocity_wrt_root()
+        v_other = other_frame._velocity_wrt_root()
+        return relativistic_velocity_addition(v_self, v_other, self.c)
+    
+    def _boost_velocity_to(self, other_frame):
+        """
+        Boost velocity needed to transform coordinates from this frame to other_frame.
+        """
         v_self = self._velocity_wrt_root()
         v_other = other_frame._velocity_wrt_root()
         return relativistic_velocity_addition(v_other, v_self, self.c)
 
+
     def _transformation_to(self, other):
-        v_rel = self.velocity_wrt(other)
-        return boost_matrix(v_rel, self.c)
+        v_boost = self._boost_velocity_to(other)
+        return boost_matrix(v_boost, self.c)
 
     def _transform(self, fourvector, other):
         new_vec = smart_matmul(self._transformation_to(other), fourvector.vec)

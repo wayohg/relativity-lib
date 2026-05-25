@@ -88,18 +88,18 @@ def _check_speed(speed, c=C, allow_light: bool = False):
     if is_symbolic(speed) or is_symbolic(c):
         return
 
-    speed_abs = abs(float(speed))
+    speed_float = float(speed)
     c_float = float(c)
 
-    if speed_abs < 0:
-        raise ValueError("Speed cannot be negative.")
+    if speed_float < 0:
+        raise ValueError("Scalar speed cannot be negative.")
 
     if allow_light:
-        if speed_abs > c_float:
+        if speed_float > c_float:
             raise ValueError("Speed cannot exceed c.")
     else:
-        if speed_abs >= c_float:
-            raise ValueError("Massive-particle speed must satisfy |v| < c.")
+        if speed_float >= c_float:
+            raise ValueError("Massive-particle speed must satisfy speed < c.")
 
 
 def _gamma_from_speed(speed, c=C):
