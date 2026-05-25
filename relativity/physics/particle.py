@@ -1,247 +1,58 @@
-import sympy as sp
+"""Massive relativistic particle."""
+from __future__ import annotations
 import numpy as np
-
+import sympy as sp
 from relativity.constants import C
-
-from relativity.utils import (
-    smart_array,
-    smart_norm,
-    smart_sqrt,
-    smart_dot,
-    gamma_factor,
-    beta_factor,
-    is_symbolic,
-    simplify
-)
+from relativity.utils import smart_array, smart_norm, smart_sqrt, smart_dot, gamma_factor, beta_factor, is_symbolic, simplify
 
 
 class Particle:
-
-    """
-    Relativistic particle with
-    numeric/symbolic hybrid support.
-    """
-
-    def __init__(
-        self,
-        mass,
-        position=None,
-        velocity=None,
-        frame=None,
-        name="particle",
-        c=C
-    ):
-
+    def __init__(self, mass, position=None, velocity=None, frame=None, name="particle", c=C):
         self.name = name
-
         self.mass = mass
-
-        self.position = smart_array(
-            position if position is not None
-            else [0, 0, 0]
-        )
-
-        self.velocity = smart_array(
-            velocity if velocity is not None
-            else [0, 0, 0]
-        )
-
+        self.position = smart_array(position if position is not None else [0, 0, 0])
+        self.velocity = smart_array(velocity if velocity is not None else [0, 0, 0])
         self.frame = frame
-
         self.c = c
-
         self._check_velocity()
 
-    # =====================================================
-    # VALIDATION
-    # =====================================================
-
     def _check_velocity(self):
-
         if is_symbolic(self.velocity):
             return
-
-        speed = self.speed
-
-        if speed >= self.c:
-
-            raise ValueError(
-                "Massive particles cannot "
-                "reach or exceed c."
-            )
-
-    # =====================================================
-    # BASIC RELATIVISTIC QUANTITIES
-    # =====================================================
+        if self.speed >= self.c:
+            raise ValueError("Una partícula masiva debe tener |v| < c.")
 
     @property
-    def speed(self):
-
-        return smart_norm(
-            self.velocity
-        )
-
+    def speed(self): return smart_norm(self.velocity)
     @property
-    def beta(self):
-
-        return beta_factor(
-            self.velocity,
-            self.c
-        )
-
+    def beta(self): return beta_factor(self.velocity, self.c)
     @property
-    def gamma(self):
-
-        return gamma_factor(
-            self.velocity,
-            self.c
-        )
-
-    # =====================================================
-    # ENERGY AND MOMENTUM
-    # =====================================================
-
+    def gamma(self): return gamma_factor(self.velocity, self.c)
     @property
-    def momentum(self):
-
-        return (
-            self.gamma *
-            self.mass *
-            self.velocity
-        )
-
+    def momentum(self): return self.gamma * self.mass * self.velocity
     @property
-    def energy(self):
-
-        return (
-            self.gamma *
-            self.mass *
-            self.c**2
-        )
-
+    def energy(self): return self.gamma * self.mass * self.c**2
     @property
-    def rest_energy(self):
-
-        return (
-            self.mass *
-            self.c**2
-        )
-
+    def rest_energy(self): return self.mass * self.c**2
     @property
-    def kinetic_energy(self):
-
-        return (
-            (self.gamma - 1) *
-            self.mass *
-            self.c**2
-        )
-
-    # =====================================================
-    # FOUR MOMENTUM
-    # =====================================================
-
+    def kinetic_energy(self): return (self.gamma - 1) * self.rest_energy
     @property
-    def four_momentum(self):
-
-        E_over_c = (
-            self.energy / self.c
-        )
-
-        return smart_array([
-
-            E_over_c,
-            *self.momentum
-
-        ])
-
-    # =====================================================
-    # INVARIANT MASS CHECK
-    # =====================================================
+    def four_momentum(self): return smart_array([self.energy / self.c, *self.momentum])
 
     @property
     def invariant_mass(self):
-
         P = self.four_momentum
-
-        E = P[0] * self.c
-
-        p = P[1:]
-
-        m2 = (
-
-            E**2 / self.c**4
-
-            -
-
-            smart_dot(p, p) / self.c**2
-
-        )
-
-        return simplify(
-            smart_sqrt(m2)
-        )
-
-    # =====================================================
-    # SPACETIME HELPERS
-    # =====================================================
+        E, p = P[0] * self.c, P[1:]
+        return simplify(smart_sqrt(E**2 / self.c**4 - smart_dot(p, p) / self.c**2))
 
     def rapidity(self):
-
-        beta = self.beta
-
-        if is_symbolic(beta):
-
-            return sp.atanh(beta)
-
-        return np.arctanh(beta)
-
-    # =====================================================
-    # INFO
-    # =====================================================
+        return sp.atanh(self.beta) if is_symbolic(self.beta) else np.arctanh(self.beta)
 
     def info(self):
-
-        return {
-
-            "name": self.name,
-
-            "mass": self.mass,
-
-            "speed": self.speed,
-
-            "beta": self.beta,
-
-            "gamma": self.gamma,
-
-            "energy": self.energy,
-
-            "kinetic_energy":
-                self.kinetic_energy,
-
-            "momentum":
-                self.momentum,
-
-            "four_momentum":
-                self.four_momentum
-
-        }
-
-    # =====================================================
-    # REPRESENTATION
-    # =====================================================
+        return {"name": self.name, "mass": self.mass, "speed": self.speed, "beta": self.beta,
+                "gamma": self.gamma, "energy": self.energy, "kinetic_energy": self.kinetic_energy,
+                "momentum": self.momentum, "four_momentum": self.four_momentum}
 
     def __repr__(self):
-
-        mode = (
-            "symbolic"
-            if is_symbolic(self.velocity)
-            else "numeric"
-        )
-
-        return (
-
-            f"Particle("
-            f"name={self.name}, "
-            f"mode={mode})"
-
-        )
+        mode = "symbolic" if is_symbolic(self.velocity) else "numeric"
+        return f"Particle(name={self.name!r}, mode={mode})"

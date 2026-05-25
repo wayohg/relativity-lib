@@ -1,105 +1,56 @@
+"""Piecewise worldline built from events."""
+from __future__ import annotations
 import numpy as np
-
 from relativity.constants import C
-from relativity.utils import smart_sqrt
+from relativity.physics.event import Event
+from relativity.utils import smart_array, smart_dot, smart_sqrt
 
 
 class Worldline:
-    """
-    Sequence of spacetime events representing a particle's history.
-    Events are kept sorted by coordinate time.
-    """
-
     def __init__(self, events=None, c=C):
-        self.events = events if events is not None else []
+        self.events = sorted(events or [], key=lambda e: e.t)
         self.c = c
 
-    # =====================================================
-    # EVENT MANAGEMENT
-    # =====================================================
+    @classmethod
+    def inertial(cls, position0, velocity, t_values, frame=None, c=C):
+        r0, v = smart_array(position0), smart_array(velocity)
+        return cls([Event(t, r0 + v * t, frame=frame, c=c) for t in t_values], c=c)
 
     def add_event(self, event):
         self.events.append(event)
         self.events.sort(key=lambda e: e.t)
-
-    # =====================================================
-    # COORDINATE ARRAYS
-    # =====================================================
+        return self
 
     @property
-    def times(self):
-        return np.array([e.t for e in self.events])
-
+    def times(self): return smart_array([e.t for e in self.events])
     @property
-    def positions(self):
-        return np.array([e.r for e in self.events])  # FIX: requires Event.r property
+    def positions(self): return smart_array([e.r for e in self.events])
 
-    # =====================================================
-    # INTERVALS AND PROPER TIME
-    # =====================================================
-
-    def spacetime_interval(self, e1, e2):
-        """Coordinate-frame interval s² = c²Δt² - |Δr|²."""
-        dt = e2.t - e1.t
-        dr = e2.r - e1.r
-        return self.c**2 * dt**2 - np.dot(dr, dr)
+    def segments(self):
+        return zip(self.events[:-1], self.events[1:])
 
     def proper_time(self):
-        """Total proper time τ along the worldline."""
-        if len(self.events) < 2:
-            return 0.0
-
-        tau = 0.0
-        for i in range(len(self.events) - 1):
-            e1, e2 = self.events[i], self.events[i + 1]
-            interval = self.spacetime_interval(e1, e2)
-            if interval > 0:
-                tau += smart_sqrt(interval) / self.c  # FIX: use smart_sqrt for consistency
+        tau = 0
+        for e1, e2 in self.segments():
+            s2 = e1.interval_squared_to(e2)
+            if s2 > 0:
+                tau += smart_sqrt(s2) / self.c
         return tau
 
-    # =====================================================
-    # KINEMATICS
-    # =====================================================
-
     def velocities(self):
-        """Coordinate velocities between consecutive events."""
-        vels = []
-        for i in range(len(self.events) - 1):
-            e1, e2 = self.events[i], self.events[i + 1]
+        out = []
+        for e1, e2 in self.segments():
             dt = e2.t - e1.t
             if dt == 0:
-                raise ValueError(      # FIX: was silently returning dr/0
-                    f"Events {i} and {i+1} have identical coordinate time."
-                )
-            dr = e2.r - e1.r
-            vels.append(dr / dt)
-        return vels
+                raise ValueError("Dos eventos consecutivos tienen el mismo tiempo coordenado.")
+            out.append((e2.r - e1.r) / dt)
+        return out
 
     def gamma_factors(self):
-        """Lorentz γ factors between consecutive events."""
-        gammas = []
-        for v in self.velocities():
-            speed = np.linalg.norm(v)
-            beta  = speed / self.c
-            if beta >= 1.0:
-                raise ValueError(
-                    "Superluminal segment detected in worldline."
-                )
-            gammas.append(1.0 / np.sqrt(1 - beta**2))
-        return gammas
+        return [1 / smart_sqrt(1 - smart_dot(v, v) / self.c**2) for v in self.velocities()]
 
-    # =====================================================
-    # BOOST
-    # =====================================================
-
-    def boost(self, frame):
-        """Return a new Worldline with all events transformed into frame."""
-        boosted = [event.transform(frame) for event in self.events]  # FIX: was event.transform() undefined
-        return Worldline(boosted, c=self.c)
-
-    # =====================================================
-    # REPRESENTATION
-    # =====================================================
+    def in_frame(self, new_frame):
+        return Worldline([e.in_frame(new_frame) for e in self.events], c=self.c)
 
     def __repr__(self):
         return f"Worldline(num_events={len(self.events)})"
