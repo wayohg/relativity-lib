@@ -52,6 +52,19 @@ class Photon:
             smart_norm(self.direction)
         )
 
+
+    # =====================================================
+    # ALTERNATIVE CONSTRUCTORS
+    # =====================================================
+
+    @classmethod
+    def from_energy(cls, energy, direction, frame=None, name="photon", c=C, h=PLANCK):
+        return cls(frequency=energy / h, direction=direction, frame=frame, name=name, c=c, h=h)
+
+    @classmethod
+    def from_wavelength(cls, wavelength, direction, frame=None, name="photon", c=C, h=PLANCK):
+        return cls(frequency=c / wavelength, direction=direction, frame=frame, name=name, c=c, h=h)
+
     # =====================================================
     # BASIC QUANTITIES
     # =====================================================

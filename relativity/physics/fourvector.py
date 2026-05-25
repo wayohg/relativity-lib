@@ -1,15 +1,18 @@
-import numpy as np
-from relativity.utils import smart_array          # FIX: was missing; used below
+"""Four-vector object X^mu=(ct,x,y,z)."""
+
+from __future__ import annotations
+
+from relativity.utils import smart_array, simplify
 from relativity.math.minkowski import spacetime_interval
 
 
 class FourVector:
     def __init__(self, ct, x, y, z):
-        self.vec = smart_array([ct, x, y, z], dtype=float)
+        self.vec = smart_array([ct, x, y, z])
 
     @classmethod
     def from_time_space(cls, t, r, c):
-        r = smart_array(r, dtype=float)
+        r = smart_array(r)
         return cls(c * t, r[0], r[1], r[2])
 
     @property
@@ -23,24 +26,20 @@ class FourVector:
     def interval_squared(self):
         return spacetime_interval(self.vec)
 
-    # =====================================================
-    # ALGEBRA  (FIX: missing operators)
-    # =====================================================
+    def simplify(self):
+        return FourVector(*simplify(self.vec))
 
     def __add__(self, other):
-        v = self.vec + other.vec
-        return FourVector(*v)
+        return FourVector(*(self.vec + other.vec))
 
     def __sub__(self, other):
-        v = self.vec - other.vec
-        return FourVector(*v)
+        return FourVector(*(self.vec - other.vec))
 
     def __mul__(self, scalar):
-        v = self.vec * scalar
-        return FourVector(*v)
+        return FourVector(*(self.vec * scalar))
 
     def __rmul__(self, scalar):
         return self.__mul__(scalar)
 
     def __repr__(self):
-        return f"FourVector(ct={self.vec[0]:.4g}, x={self.vec[1]:.4g}, y={self.vec[2]:.4g}, z={self.vec[3]:.4g})"
+        return f"FourVector(ct={self.vec[0]}, x={self.vec[1]}, y={self.vec[2]}, z={self.vec[3]})"

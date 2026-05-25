@@ -52,13 +52,38 @@ class Particle:
 
         self._check_velocity()
 
+
+    # =====================================================
+    # ALTERNATIVE CONSTRUCTORS
+    # =====================================================
+
+    @classmethod
+    def at_rest(cls, mass, position=None, frame=None, name="particle", c=C):
+        return cls(mass=mass, position=position, velocity=[0, 0, 0], frame=frame, name=name, c=c)
+
+    @classmethod
+    def from_momentum(cls, mass, momentum, position=None, frame=None, name="particle", c=C):
+        momentum = smart_array(momentum)
+        p2 = smart_dot(momentum, momentum)
+        energy = smart_sqrt(mass**2 * c**4 + p2 * c**2)
+        velocity = simplify(momentum * c**2 / energy)
+        return cls(mass=mass, position=position, velocity=velocity, frame=frame, name=name, c=c)
+
+    @classmethod
+    def from_energy(cls, mass, energy, direction, position=None, frame=None, name="particle", c=C):
+        direction = smart_array(direction)
+        direction = direction / smart_norm(direction)
+        p_mag = smart_sqrt(energy**2 / c**2 - mass**2 * c**2)
+        momentum = p_mag * direction
+        return cls.from_momentum(mass, momentum, position=position, frame=frame, name=name, c=c)
+
     # =====================================================
     # VALIDATION
     # =====================================================
 
     def _check_velocity(self):
 
-        if is_symbolic(self.velocity):
+        if is_symbolic(self.velocity) or is_symbolic(self.c):
             return
 
         speed = self.speed
