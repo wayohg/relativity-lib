@@ -38,6 +38,7 @@ from . import math
 from . import physics
 from . import sr
 from . import plotting
+from . import quantum
 
 __all__ = [
     "__version__",
@@ -64,4 +65,5 @@ __all__ = [
     "physics",
     "sr",
     "plotting",
+    "quantum"
 ]
